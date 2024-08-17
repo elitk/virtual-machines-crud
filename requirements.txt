@@ -1,0 +1,9 @@
+flask
+authlib
+pandas
+matplotlib
+seaborn
+scipy
+statsmodels
+bioinfokit
+requests

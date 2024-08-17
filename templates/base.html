@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>{% block title %}{% endblock %}</title>
+     <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+     <script>
+          async function fetchVms() {
+            const response = await fetch('/list_vms');
+            const data = await response.json();
+            print(data)
+            const table = buildTable(data.vms);
+            document.getElementById('vm-table').innerHTML = table
+        }
+
+        async function fetchRunningVms() {
+            const response = await fetch('/list_running_vms');
+            const data = await response.json();
+            const table = buildTable(data.running_vms);
+            document.getElementById('running-vm-table').innerHTML = table
+        }
+        function buildTable(rows) {
+            let table = '<table border="1"><thead><tr><th>VMs</th></tr></thead><tbody>';
+            rows.forEach(row => {
+                table += `<tr><td>${row}</td></tr>`;
+            });
+            table += '</tbody></table>';
+            return table;
+        }
+    </script>
+</head>
+<body>
+    
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
+        <a class="navbar-brand" href="/">Research Games</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+	     <span class="navbar-toggler-icon"></span>
+	 </button>
+         <div class="collapse navbar-collapse" id="navbarNav">
+             <ul class="navbar-nav">
+	         
+		<li class="nav-item">
+		    <a class="nav-link" href="statisticstools">Statistics Tools</a>
+		</li>
+        <li class="nav-item">
+		    <a class="nav-link" href="games">Games</a>
+		</li>
+		<li class="nav-item">
+		    <a class="nav-link" href="wallofame">Wall-of-Fame</a>
+		</li>
+	    </ul>
+        </div>
+    </nav>
+    <div class="jumbotron">
+    {% block content %}
+   
+    {% endblock %}
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>
