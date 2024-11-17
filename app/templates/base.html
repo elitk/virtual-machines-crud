@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+</head>
+<body>
+    <nav class="bg-gray-800 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-white text-xl font-bold">My Flask App</h1>
+
+            <!-- Desktop Navigation -->
+            <div class="hidden md:block">
+                <ul class="flex space-x-4">
+                    <li>
+                        <a href="{{ url_for('index') }}"
+                           class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
+                                  {% if request.endpoint == 'index' %}bg-gray-900 text-white{% endif %}">
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('vms.create_vm') }}"
+                           class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
+                                  {% if request.endpoint == 'vms.create_vm' %}bg-gray-900 text-white{% endif %}">
+                            Create
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('vms.list_vms') }}"
+                           class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
+                                  {% if request.endpoint == 'vms.list_vms' %}bg-gray-900 text-white{% endif %}">
+                            List VM
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('vms.list_running_vms') }}"
+                           class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
+                                  {% if request.endpoint == 'vms.list_running_vms' %}bg-gray-900 text-white{% endif %}">
+                            List Running VM
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden">
+                <button type="button"
+                        class="text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
+                        onclick="toggleMobileMenu()">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden" id="mobileMenu">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="{{ url_for('index') }}"
+                   class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                    Home
+                </a>
+                <a href="{{ url_for('vms.create_vm') }}"
+                   class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                    Create
+                </a>
+                <a href="{{ url_for('vms.list_vms') }}"
+                   class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                    List VM
+                </a>
+                <a href="{{ url_for('vms.list_running_vms') }}"
+                   class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                    List Running VM
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto mt-6 px-4">
+        {% block content %}{% endblock %}
+
+        <!-- Loading Skeleton -->
+        <div id="loading-skeleton" class="animate-pulse">
+            <!-- Stats Overview Skeleton -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="h-5 bg-gray-200 rounded w-24 mb-4"></div>
+                    <div class="h-8 bg-gray-200 rounded w-16"></div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="h-5 bg-gray-200 rounded w-24 mb-4"></div>
+                    <div class="h-8 bg-gray-200 rounded w-16"></div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="h-5 bg-gray-200 rounded w-24 mb-4"></div>
+                    <div class="h-8 bg-gray-200 rounded w-16"></div>
+                </div>
+            </div>
+
+            <!-- VM List Skeleton -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                <ul class="divide-y divide-gray-200">
+                    {% for i in range(5) %}
+                    <li>
+                        <div class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="h-4 bg-gray-200 rounded-full w-16"></div>
+                                    <div class="ml-4">
+                                        <div class="h-5 bg-gray-200 rounded w-48 mb-2"></div>
+                                        <div class="h-4 bg-gray-200 rounded w-32"></div>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-3">
+                                    <div class="h-8 bg-gray-200 rounded w-16"></div>
+                                    <div class="h-8 bg-gray-200 rounded w-16"></div>
+                                    <div class="h-8 bg-gray-200 rounded w-16"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
