@@ -1,102 +1,12 @@
 {% extends "base.html" %}
+{% set loop_count = running_vms|length %}
+{% set stats_count = 1 %}
+{% set is_loading = True %}
+
 
 {% block title %}Running Virtual Machines{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Running Virtual Machines</h1>
-        <p class="mt-2 text-sm text-gray-600">Here is a list of your running VirtualBox VMs.</p>
-    </div>
-
-    {% if error %}
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
-        <p class="font-bold">Error:</p>
-        <p>{{ error }}</p>
-    </div>
-    {% endif %}
-
-    <!-- Stats Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-medium text-gray-900">Total Running VMs</h3>
-            <p class="mt-2 text-3xl font-semibold text-green-600">{{ running_vms|length }}</p>
-        </div>
-    </div>
-
-    <!-- Running VM List -->
-    {% if running_vms %}
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <ul class="divide-y divide-gray-200">
-            {% for vm in running_vms %}
-            <li>
-                <div class="px-4 py-4 sm:px-6 hover:bg-gray-50">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <!-- VM Status Indicator -->
-                            <div class="flex-shrink-0">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Running
-                                </span>
-                            </div>
-                            <!-- VM Info -->
-                            <div class="ml-4">
-                                <h3 class="text-lg font-medium text-gray-900">{{ vm.name }}</h3>
-                                <p class="text-sm text-gray-500">UUID: {{ vm.uuid }}</p>
-                                <!-- Additional VM Details -->
-                                <div class="mt-2 grid grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                        <span class="text-gray-500">Memory:</span>
-                                        <span class="ml-1 text-gray-900">{{ vm.memory }}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-500">CPUs:</span>
-                                        <span class="ml-1 text-gray-900">{{ vm.cpus }}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-500">OS Type:</span>
-                                        <span class="ml-1 text-gray-900">{{ vm.os_type }}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-500">State:</span>
-                                        <span class="ml-1 text-gray-900">{{ vm.state }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Action Buttons -->
-                        <div class="flex space-x-3">
-                            <button onclick="stopVM('{{ vm.uuid }}')"
-                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                Stop
-                            </button>
-                            <button onclick="pauseVM('{{ vm.uuid }}')"
-                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400">
-                                Pause
-                            </button>
-                            <button onclick="showVMInfo('{{ vm.uuid }}', '{{ vm.name }}', 'Running')"
-                                    class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                Info
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No Running Virtual Machines</h3>
-        <p class="mt-1 text-sm text-gray-500">There are no VMs currently running.</p>
-    </div>
-    {% endif %}
-</div>
 
 <script>
 function stopVM(uuid) {
@@ -157,4 +67,103 @@ function closeModal() {
 //     LoaderUtil.show();
 // });
 </script>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Running Virtual Machines</h1>
+        <p class="mt-2 text-sm text-gray-600">Here is a list of your running VirtualBox VMs.</p>
+    </div>
+
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+            <p class="font-bold">Error:</p>
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+
+        <div id="vm-content" class="hidden">
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900">Total Running VMs</h3>
+                    <p class="mt-2 text-3xl font-semibold text-green-600">{{ running_vms|length }}</p>
+                </div>
+            </div>
+
+            <!-- Running VM List -->
+            {% if running_vms %}
+            <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                <ul class="divide-y divide-gray-200">
+                    {% for vm in running_vms %}
+                    <li>
+                        <div class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <!-- VM Status Indicator -->
+                                    <div class="flex-shrink-0">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Running
+                                        </span>
+                                    </div>
+                                    <!-- VM Info -->
+                                    <div class="ml-4">
+                                        <h3 class="text-lg font-medium text-gray-900">{{ vm.name }}</h3>
+                                        <p class="text-sm text-gray-500">UUID: {{ vm.uuid }}</p>
+                                        <!-- Additional VM Details -->
+                                        <div class="mt-2 grid grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <span class="text-gray-500">Memory:</span>
+                                                <span class="ml-1 text-gray-900">{{ vm.memory }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">CPUs:</span>
+                                                <span class="ml-1 text-gray-900">{{ vm.cpus }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">OS Type:</span>
+                                                <span class="ml-1 text-gray-900">{{ vm.os_type }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">State:</span>
+                                                <span class="ml-1 text-gray-900">{{ vm.state }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Action Buttons -->
+                                <div class="flex space-x-3">
+                                    <button onclick="stopVM('{{ vm.uuid }}')"
+                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                        Stop
+                                    </button>
+                                    <button onclick="pauseVM('{{ vm.uuid }}')"
+                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400">
+                                        Pause
+                                    </button>
+                                    <button onclick="showVMInfo('{{ vm.uuid }}', '{{ vm.name }}', 'Running')"
+                                            class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        Info
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No Running Virtual Machines</h3>
+                <p class="mt-1 text-sm text-gray-500">There are no VMs currently running.</p>
+            </div>
+            {% endif %}
+
+    <div/>
+</div>
+</div>
 {% endblock %}

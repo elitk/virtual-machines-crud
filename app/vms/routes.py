@@ -91,17 +91,14 @@ def list_running_vms():
 
         if success:
             return render_template('vms/list_running_vms.html',
-                                   is_loading=False,  # Operation complete, not loading
                                    running_vms=result)
         else:
             return render_template('vms/list_running_vms.html',
-                                   is_loading=False,  # Operation complete, not loading
                                    error=result,
                                    running_vms=[])
 
     except Exception as e:
         return render_template('vms/list_running_vms.html',
-                               is_loading=False,  # Operation complete, not loading
                                error=str(e),
                                running_vms=[])
 

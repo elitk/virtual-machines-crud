@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% set loop_count = vms|length %}
+{% set stats_count = 3 %}
+{% set is_loading = True %}
 
 {% block title %}Virtual Machines{% endblock %}
 
@@ -103,13 +106,13 @@
     }
 
      // Add escape key to close
-        document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeModal();
             }
         });
 
-      function get_vm_status(status){
+    function get_vm_status(status){
          const statusStyles = {
                 'running': {
                     class: 'bg-green-100 text-green-800',
@@ -142,9 +145,6 @@
                 ${statusStyle.text}
                  </span>`;
       }
-
-
-
 
     function openCreateModal() {
         document.getElementById('createVMModal').classList.remove('hidden');
@@ -234,11 +234,10 @@
         </div>
 
 
-    <!-- VM List -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+         <!-- VM List -->
+         <div class="bg-white shadow overflow-hidden sm:rounded-md">
         <ul class="divide-y divide-gray-200">
             {% for vm in vms %}
-
             <!-- Modified VM List Item -->
                 <li>
                     <div class="px-4 py-4 sm:px-6 hover:bg-gray-50">
@@ -312,21 +311,21 @@
         </ul>
     </div>
 
-    <!-- Empty State -->
-    {% if not vms %}
-    <div class="text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No Virtual Machines</h3>
-        <p class="mt-1 text-sm text-gray-500">Get started by creating a new virtual machine.</p>
-        <a href="{{ url_for('vms.create_vm') }}">
-            <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Create Item
-            </button>
-        </a>
-    </div>
-    {% endif %}
+        <!-- Empty State -->
+        {% if not vms %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No Virtual Machines</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating a new virtual machine.</p>
+            <a href="{{ url_for('vms.create_vm') }}">
+                <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Create Item
+                </button>
+            </a>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Modal -->
@@ -359,7 +358,7 @@
         </div>
     </div>
 
-       <!-- Create VM Modal -->
+    <!-- Create VM Modal -->
     <div id="createVMModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden overflow-y-auto">
         <div class="flex min-h-full items-center justify-center p-4">
             <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-lg">
