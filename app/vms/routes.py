@@ -69,10 +69,10 @@ def list_vms():
             elif status == 'poweroff':
                 stopped_vms.append(vm)
 
-        return render_template('vms/list_vms.html', vms=result, stopped_vms=stopped_vms, running_vms=running_vms)
+        return render_template('pages/list_vms.html', vms=result, stopped_vms=stopped_vms, running_vms=running_vms)
     else:
         # Handle error case
-        return render_template('vms/list_vms.html',
+        return render_template('pages/list_vms.html',
                                error=result,
                                running_vms=[],
                                stopped_vms=[],
