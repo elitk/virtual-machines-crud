@@ -1,0 +1,11 @@
+<div class="bg-white shadow overflow-hidden sm:rounded-md">
+    <ul class="divide-y divide-gray-200">
+        {% for vm in vms %}
+            {% with
+                vm=vm
+            %}
+            {% include 'components/virtual_machine/item.html' %}
+            {% endwith %}
+        {% endfor %}
+    </ul>
+</div>

@@ -1,0 +1,77 @@
+<li>
+    <div class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <!-- VM Status Indicator -->
+                <div class="flex-shrink-0">
+                    <script>
+                        document.write(get_vm_status('{{ vm.state }}'));
+                    </script>
+                </div>
+                <div class="flex-shrink-0" id="status-{{ vm.uuid }}"></div>
+
+
+                <div class="flex-shrink-0" id="vm-status"></div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.getElementById('status-{{ vm.uuid }}').innerHTML = get_vm_status('{{ vm.state }}');
+                    });
+                </script>
+                <!-- VM Info -->
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">{{ vm.name }}</h3>
+                    <p class="text-sm text-gray-500">UUID: {{ vm.uuid }}</p>
+                    <!-- Additional VM Details -->
+                    <div class="mt-2 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                        <div class="flex flex-col">
+                            <span class="text-gray-500">Memory:</span>
+                            <span class="text-gray-900">{{ vm.memory }} MB</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-gray-500">CPUs:</span>
+                            <span class="text-gray-900">{{ vm.cpus }}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-gray-500">OS Type:</span>
+                            <span class="text-gray-900">{{ vm.os_type }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Action Buttons -->
+            <div class="flex space-x-2">
+             {% if vm.state == 'poweroff' %}
+            <button onclick="startVM('{{ vm.uuid }}')"
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Start
+            </button>
+            {% endif %}
+            {% if vm.state == 'running' %}
+            <button onclick="stopVM('{{ vm.uuid }}')"
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                Stop
+            </button>
+<!--                            <button onclick="pauseVM('{{ vm.uuid }}')"-->
+<!--                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">-->
+<!--                                Pause-->
+<!--                            </button>-->
+            {% endif %}
+            <button onclick='showVMInfo({
+                name: "{{ vm.name }}",
+                uuid: "{{ vm.uuid }}",
+                status: "{{ vm.status }}",
+                memory: "{{ vm.memory }}",
+                cpus: "{{ vm.cpus }}",
+                os_type: "{{ vm.os_type }}"
+            })'
+                    class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Info
+            </button>
+            <button onclick="deleteVM('{{ vm.uuid }}')"
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                Delete
+            </button>
+            </div>
+        </div>
+    </div>
+</li>

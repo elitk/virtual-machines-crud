@@ -1,0 +1,153 @@
+
+{% extends "base.html" %}
+{% set loop_count = vms|length %}
+{% set stats_count = 3 %}
+{% set is_loading = True %}
+
+{% block title %}Virtual Machines{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header with Create Button -->
+
+         {% with
+        title="Virtual Machines",
+        description="Manage your VirtualBox virtual machines",
+        show_create_button=True,
+        create_button_text="Create VM"
+        %}
+        {% include 'components/header/page_header.html' %}
+        {% endwith %}
+    <!-- Actual content (initially hidden) -->
+    <div id="vm-content" class="hidden">
+        <!-- Stats Overview -->
+        {% with
+            total="Total VMs",
+            totalCount=vms|length,
+            running="Running",
+            runningCount=running_vms|length,
+            stopped="Stopped",
+            stoppedCount=stopped_vms|length
+        %}
+        {% include 'components/stats/overview.html' %}
+        {% endwith %}
+         <!-- VM List -->
+
+        {% with
+            vms=vms
+        %}
+        {% include 'components/virtual_machine/list.html' %}
+        {% endwith %}
+
+        <!-- Empty State -->
+        {% if not vms %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No Virtual Machines</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating a new virtual machine.</p>
+            <a href="{{ url_for('vms.create_vm') }}">
+                <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Create Item
+                </button>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal -->
+<!--    <div id="vmInfoModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden overflow-y-auto">-->
+<!--        <div class="flex min-h-full items-center justify-center p-4">-->
+<!--            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-lg">-->
+<!--                &lt;!&ndash; Modal Header &ndash;&gt;-->
+<!--                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">-->
+<!--                    <div class="sm:flex sm:items-start">-->
+<!--                        <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">-->
+<!--                            <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">-->
+<!--                                VM Information-->
+<!--                            </h3>-->
+<!--                            &lt;!&ndash; Modal Content &ndash;&gt;-->
+<!--                            <div class="mt-4 space-y-3" id="modal-content">-->
+<!--                                &lt;!&ndash; Content will be populated by JavaScript &ndash;&gt;-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                &lt;!&ndash; Modal Footer &ndash;&gt;-->
+<!--                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">-->
+<!--                    <button type="button"-->
+<!--                            onclick="closeModal()"-->
+<!--                            class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">-->
+<!--                        Close-->
+<!--                    </button>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+        {% with
+            modal_title="VM Information",
+            close_button_text="Close"
+        %}
+        {% include 'components/modals/info_modal.html' %}
+        {% endwith %}
+
+    <!-- Create VM Modal -->
+    <div id="createVMModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-lg">
+                <!-- Modal Header -->
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">
+                        Create New Virtual Machine
+                    </h3>
+                    <!-- Create VM Form -->
+                    <form id="createVMForm" class="mt-4 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Name</label>
+                            <input type="text" name="name" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Memory (MB)</label>
+                            <input type="number" name="memory" value="2048" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">OS Type</label>
+                            <select name="os_type" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="Ubuntu">Ubuntu</option>
+                                <option value="Windows10">Windows 10</option>
+                                <option value="Debian">Debian</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Hard Disk Size (MB)</label>
+                            <input type="number" name="hdd_size" value="20000" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">ISO Path</label>
+                            <input type="text" name="iso_path" value="drivers/ubuntu-24.04-desktop-amd64.iso" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </form>
+                </div>
+                <!-- Modal Footer -->
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button type="button" onclick="submitCreateVM()"
+                            class="inline-flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm">
+                        Create
+                    </button>
+                    <button type="button" onclick="closeCreateModal()"
+                            class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
