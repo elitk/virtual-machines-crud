@@ -3,15 +3,8 @@
         <div class="flex items-center justify-between">
             <div class="flex items-center">
                 <!-- VM Status Indicator -->
-                <div class="flex-shrink-0">
-                    <script>
-                        document.write(get_vm_status('{{ vm.state }}'));
-                    </script>
-                </div>
+
                 <div class="flex-shrink-0" id="status-{{ vm.uuid }}"></div>
-
-
-                <div class="flex-shrink-0" id="vm-status"></div>
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('status-{{ vm.uuid }}').innerHTML = get_vm_status('{{ vm.state }}');

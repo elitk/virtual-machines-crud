@@ -1,97 +1,104 @@
-# import subprocess
-# import re
-# import time
-# from flask import Flask, render_template, jsonify
-#
-# app = Flask(__name__)
-#
-#
-# def run_vboxmanage_command(command):
-#     try:
-#         result = subprocess.run(command, capture_output=True, text=True, check=True)
-#         return result.stdout
-#     except subprocess.CalledProcessError as e:
-#         return e.stderr
-#
-#
-# @app.route("/")
-# def hello_world():
-#     return render_template("index.html")
-#
-#
-# @app.route('/', endpoint='index')
-# def index():
-#     return render_template('index.html')
-#
-#
-# @app.route('/create', methods=['GET', 'POST'], endpoint='create')
-# def create():
-#     return render_template('create.html')
-#
-#
-# def parse_vm_info(vm_line):
-#     # Parse VM line which typically looks like: "VM Name" {uuid}
-#     match = re.match(r'"([^"]+)"\s+{([^}]+)}', vm_line)
-#     print({vm_line})
-#     if match:
-#         return {
-#             'name': match.group(1),
-#             'uuid': match.group(2),
-#             'status': 'Powered Off'  # Default status, you can get actual status with another vboxmanage command
-#         }
-#     return None
-#
-#
-# def get_vm_status(uuid):
-#     """Get the status of a VM using its UUID."""
-#     command = ['vboxmanage', 'showvminfo', uuid, '--machinereadable']
-#     output = run_vboxmanage_command(command)
-#
-#     # Parse the output to find the line that contains the VM state
-#     for line in output.splitlines():
-#         if line.startswith('VMState='):
-#             return line.split('=')[1].strip('"')
-#
-#     return 'unknown'
-#
-#
-# def get_all_vm_statuses(uuids):
-#     return [get_vm_status(uuid) for uuid in uuids]
-#
-#
-# @app.route('/list_vms', methods=['GET'])
-# def list_vms():
-#
-#     command = ['vboxmanage', 'list', 'vms']
-#     output = run_vboxmanage_command(command)
-#     vms = [parse_vm_info(line) for line in output.splitlines() if parse_vm_info(line)]
-#     uuids = [vm['uuid'] for vm in vms]
-#     statuses = get_all_vm_statuses(uuids)
-#
-#     for index, vm in enumerate(vms):
-#         vm['status'] = statuses[index]
-#
-#     running_vms = sum(1 for vm in vms if vm['status'] == 'running')
-#     stopped_vms = sum(1 for vm in vms if vm['status'] == 'poweroff')
-#     print(vms)
-#
-#     # time.sleep(3)
-#     return render_template('list_vms.html', vms=vms, running_vms=running_vms, stopped_vms=stopped_vms)
-#
-#
-#
-# @app.route('/list_running_vms', methods=['GET'])
-# def list_running_vms():
-#     command = ['vboxmanage', 'list', 'runningvms']
-#     output = run_vboxmanage_command(command)
-#     running_vms = [parse_vm_info(line) for line in output.splitlines() if parse_vm_info(line)]
-#     return render_template('list_running_vms.html', running_vms=running_vms)
-#
-#
-# app.run(debug=True)
+import platform
+import requests
+import os
+from pathlib import Path
+from humanize import naturalsize  # for human-readable file sizes
+
+# ISO_PATH = "path/to/iso/ubuntu-24.04-desktop-amd64.iso"
 from app import create_app  # Import the create_app function
+
+ISO_PATHS = {
+    'ubuntu': {
+        'path': 'drivers/ubuntu-24.04-desktop-amd64.iso',
+        'download_url': 'https://releases.ubuntu.com/noble/ubuntu-24.04.1-desktop-amd64.iso',
+        'fallback_url': 'https://ubuntu.com/download/desktop'  # Fallback to manual download page
+
+    }
+}
+
+
+def get_os_specific_path(path):
+    system = platform.system().lower()
+    if system == 'windows':
+        return Path(path).as_posix()  # Converts to Windows path style
+    return path
+
+
+def get_ubuntu_iso_url():
+    base_url = "https://releases.ubuntu.com/24.04/"
+    iso_name = "ubuntu-24.04-desktop-amd64.iso"
+
+    print(f"Will download: {iso_name}")
+    return f"{base_url}{iso_name}"
+
+
+def check_iso_files():
+    for iso_name, iso_info in ISO_PATHS.items():
+        iso_path = Path(get_os_specific_path(iso_info['path']))
+
+        if not iso_path.exists():
+            print(f"\n{iso_name.upper()} ISO not found!")
+
+            # Check if URL is valid
+            try:
+                response = requests.head(iso_info['download_url'])
+                if response.status_code == 404:
+                    print(f"Direct download link not available.")
+                    print(f"Please download manually from: {iso_info['fallback_url']}")
+                    print(f"And place it in: {iso_path}")
+                    continue
+
+                size = naturalsize(int(response.headers.get('content-length', 0)))
+                print(f"File size: {size}")
+
+                user_input = input("\nWould you like to download it now? (y/n): ")
+                if user_input.lower() == 'y':
+                    download_iso(iso_info['download_url'], iso_path)
+                else:
+                    print(f"Please download manually and place in {iso_path}")
+            except requests.exceptions.RequestException as e:
+                print(f"Error checking download URL: {e}")
+                print(f"Please download manually from: {iso_info['fallback_url']}")
+                print(f"And place it in: {iso_path}")
+
+
+def download_iso(url, path):
+    print(f"Starting download of {path}...")
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        response = requests.get(url, stream=True)
+        total_size = int(response.headers.get('content-length', 0))
+
+        with open(path, 'wb') as f:
+            downloaded = 0
+            for chunk in response.iter_content(chunk_size=8192):
+                downloaded += len(chunk)
+                f.write(chunk)
+
+                if total_size:
+                    percent = int((downloaded / total_size) * 100)
+                    size_downloaded = naturalsize(downloaded)
+                    size_total = naturalsize(total_size)
+                    print(f"\rDownloading: {percent}% ({size_downloaded}/{size_total})", end='')
+
+            print("\nDownload completed!")
+
+    except Exception as e:
+        print(f"Error downloading ISO: {e}")
+        if path.exists():
+            path.unlink()  # Delete partial download
+
 
 app = create_app()  # Create the app instance
 
 if __name__ == '__main__':
+    # Install humanize if not present
+    try:
+        import humanize
+    except ImportError:
+        print("Installing required package: humanize")
+        os.system("pip install humanize")
+        import humanize
+    check_iso_files()
     app.run(debug=True)
