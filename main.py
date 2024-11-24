@@ -1,11 +1,18 @@
 import platform
+import subprocess
+import sys
+import time
+
 import requests
 import os
 from pathlib import Path
 from humanize import naturalsize  # for human-readable file sizes
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
 
 # ISO_PATH = "path/to/iso/ubuntu-24.04-desktop-amd64.iso"
 from app import create_app  # Import the create_app function
+from app.vms import VirtualBoxConfig
 
 ISO_PATHS = {
     'ubuntu': {
@@ -30,6 +37,18 @@ def get_ubuntu_iso_url():
 
     print(f"Will download: {iso_name}")
     return f"{base_url}{iso_name}"
+
+
+def create_session_with_retry():
+    session = requests.Session()
+    retries = Retry(
+        total=5,  # number of retries
+        backoff_factor=1,  # wait 1, 2, 4, 8, 16 seconds between retries
+        status_forcelist=[500, 502, 503, 504, 429]  # HTTP status codes to retry on
+    )
+    session.mount('http://', HTTPAdapter(max_retries=retries))
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+    return session
 
 
 def check_iso_files():
@@ -63,44 +82,88 @@ def check_iso_files():
 
 
 def download_iso(url, path):
+    path = Path(path)
     print(f"Starting download of {path}...")
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    session = create_session_with_retry()
 
     try:
-        response = requests.get(url, stream=True)
+        # First check if file exists and get its size
+        response = session.get(url, stream=True, timeout=10)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
         total_size = int(response.headers.get('content-length', 0))
 
+        # If file exists and size matches, skip download
+        if path.exists() and path.stat().st_size == total_size:
+            print(f"File already exists and size matches ({naturalsize(total_size)})")
+            return True
+
+        # Download with progress
         with open(path, 'wb') as f:
             downloaded = 0
+            start_time = time.time()
+            last_print_time = start_time
+
             for chunk in response.iter_content(chunk_size=8192):
+                if not chunk:
+                    continue
+
                 downloaded += len(chunk)
                 f.write(chunk)
 
-                if total_size:
-                    percent = int((downloaded / total_size) * 100)
-                    size_downloaded = naturalsize(downloaded)
-                    size_total = naturalsize(total_size)
-                    print(f"\rDownloading: {percent}% ({size_downloaded}/{size_total})", end='')
+                # Update progress every 0.5 seconds
+                current_time = time.time()
+                if current_time - last_print_time > 0.5:
+                    if total_size:
+                        percent = int((downloaded / total_size) * 100)
+                        speed = downloaded / (current_time - start_time)
+                        size_downloaded = naturalsize(downloaded)
+                        size_total = naturalsize(total_size)
+                        eta = (total_size - downloaded) / speed if speed > 0 else 0
+
+                        print(f"\rDownloading: {percent}% ({size_downloaded}/{size_total}) "
+                              f"Speed: {naturalsize(speed)}/s ETA: {int(eta)}s", end='')
+
+                    last_print_time = current_time
 
             print("\nDownload completed!")
+            return True
 
-    except Exception as e:
+    except requests.exceptions.ConnectionError as e:
+        print(f"Connection error: {e}")
+        print("Please check your internet connection and try again.")
+    except requests.exceptions.Timeout as e:
+        print(f"Timeout error: {e}")
+        print("The download request timed out. Please try again.")
+    except requests.exceptions.RequestException as e:
         print(f"Error downloading ISO: {e}")
-        if path.exists():
-            path.unlink()  # Delete partial download
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+    # Clean up partial download on error
+    if path.exists():
+        try:
+            path.unlink()
+            print("Cleaned up partial download")
+        except Exception as e:
+            print(f"Error cleaning up partial download: {e}")
+
+    return False
 
 
 def check_virtualbox():
     try:
         vboxmanage = VirtualBoxConfig.get_vboxmanage_path()
         subprocess.run([vboxmanage, '--version'],
-                      capture_output=True,
-                      check=True)
+                       capture_output=True,
+                       check=True)
         print(f"VirtualBox found at: {vboxmanage}")
     except Exception as e:
         print(f"ERROR: VirtualBox not properly configured: {str(e)}")
         print("Please install VirtualBox and ensure VBoxManage is accessible")
         sys.exit(1)
+
 
 app = create_app()  # Create the app instance
 
