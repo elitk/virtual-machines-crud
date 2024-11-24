@@ -60,3 +60,4 @@ venv/
 .vscode/
 
 drivers
+app/static/screenshots

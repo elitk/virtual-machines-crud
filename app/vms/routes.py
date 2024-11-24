@@ -1,11 +1,37 @@
-import time
+import os
 
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, flash, url_for
 # from flask_login import login_required
 from app.vms.service import VirtualMachineService
 from app.vms.config import VMConfig
 
 vm_bp = Blueprint('vms', __name__)
+
+
+@vm_bp.route('/<uuid>/edit')
+def edit_vm(uuid):
+    vm = get_vm(uuid)  # Your function to get VM details
+    return render_template('pages/edit_vm.html', vm=vm)
+
+
+@vm_bp.route('/<uuid>', methods=['PUT'])
+def update_vm(uuid):
+    try:
+        # Update VM settings
+        vm_service = VirtualMachineService()
+        success, message = vm_service.edit_vm(uuid, request.form)
+        if not success:
+            flash(f'Error updating VM: {message}', 'error')
+            return jsonify({
+                'success': success,
+                'message': message
+            })
+
+        flash('VM configuration updated successfully', 'success')
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        flash(f'Error updating VM: {str(e)}', 'error')
+        return jsonify({'success': False, 'message': str(e)})
 
 
 @vm_bp.route('/create', methods=['GET', 'POST'])
@@ -25,6 +51,15 @@ def create_vm():
     return render_template('vms/create.html')
 
 
+@vm_bp.route('/<uuid>', methods=['GET'])
+def get_vm(uuid):
+    vm_service = VirtualMachineService()
+    success, result = vm_service.get_vm_by_uuid(uuid)
+    if not success:
+        flash(f'Error updating VM: {result}', 'error')
+    return render_template('pages/edit_vm.html', vm=result)
+
+
 @vm_bp.route('/<uuid>', methods=['DELETE'])
 def delete_vm(uuid):
     delete_files = request.args.get('delete_files')
@@ -35,8 +70,6 @@ def delete_vm(uuid):
     vm_service = VirtualMachineService()
     success, message = vm_service.delete_vm(uuid, delete_files=delete_files)
     return jsonify({'success': success, 'message': message})
-
-    return render_template('vms/create.html')
 
 
 @vm_bp.route('/<uuid>/start', methods=['POST'])
@@ -63,11 +96,17 @@ def list_vms():
         running_vms = []
         stopped_vms = []
         for vm in result:
-            status = vm['state']
+            print(vm)
+            status = vm.get('VMState')
+            vm['status'] = status
             if status == 'running':
                 running_vms.append(vm)
             elif status == 'poweroff':
                 stopped_vms.append(vm)
+
+        print(result)
+        print(stopped_vms)
+        print(running_vms)
 
         return render_template('pages/list_vms.html', vms=result, stopped_vms=stopped_vms, running_vms=running_vms)
     else:
@@ -82,8 +121,6 @@ def list_vms():
 @vm_bp.route('/list_running_vms', methods=['GET'])
 def list_running_vms():
     # Initialize loading state
-    loading = True
-
     try:
         vm_service = VirtualMachineService()
         success, result = vm_service.get_all_running_vms()
@@ -102,8 +139,27 @@ def list_running_vms():
                                error=str(e),
                                running_vms=[])
 
-# def list_running_vms():
-#     command = ['vboxmanage', 'list', 'runningvms']
-#     output = run_vboxmanage_command(command)
-#     running_vms = [parse_vm_info(line) for line in output.splitlines() if parse_vm_info(line)]
-#     return render_template('list_running_vms.html', running_vms=running_vms)
+
+@vm_bp.route('/<uuid>/screenshot', methods=['POST'])
+def take_screenshot(uuid):
+    try:
+        vm_service = VirtualMachineService()
+        success, result = vm_service.take_screenshot(uuid)
+
+        if success:
+            # Return the screenshot path
+            return jsonify({
+                'success': True,
+                'screenshot_url': url_for('static', filename=f'screenshots/{os.path.basename(result)}')
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': result
+            })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })

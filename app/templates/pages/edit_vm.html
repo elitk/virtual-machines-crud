@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Edit VM - {{ vm.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Edit VM Configuration</h1>
+        <p class="mt-2 text-sm text-gray-600">Configure settings for virtual machine {{ vm.name }} with id: {{ vm.UUID }}</p>
+    </div>
+
+    <!-- Error Message (hidden by default) -->
+    <div id="error-message" class="hidden mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+        <span id="error-text"></span>
+    </div>
+
+    <div class="bg-white shadow sm:rounded-lg">
+        <form id="editVMForm" onsubmit="handleSubmit(event)" class="space-y-6 p-6">
+            <!-- VM Details -->
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Name</label>
+                    <input type="text" name="name" value="{{ vm.name }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Memory (MB)</label>
+                    <input type="number" name="memory" value="{{ vm.memory }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">CPUs</label>
+                    <input type="number" name="cpus" value="{{ vm.cpus }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-3 pt-4">
+                <a href="{{ url_for('vms.list_vms') }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cancel
+                </a>
+                <button type="submit" id="submit-button"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+async function handleSubmit(e) {
+    console.log("submitting")
+    e.preventDefault();
+
+    // Hide any existing error message
+    document.getElementById('error-message').classList.add('hidden');
+
+    // Disable submit button and show loading state
+    const submitButton = document.getElementById('submit-button');
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Saving...';
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+    try {
+        console.log("fetching")
+        const url = "{{ url_for('vms.update_vm', uuid=vm.UUID) }}"
+        console.log(url)
+        const response = await fetch(url, {
+            method: 'PUT',
+            body: formData
+        });
+        console.log("fetched", response)
+        const data = await response.json();
+        console.log("data", data)
+        if (data.success) {
+            // Redirect on success
+            console.log("redirecting")
+            // window.location.href = "{{ url_for('vms.list_vms') }}";
+        } else {
+            // Show error message
+            document.getElementById('error-text').textContent = data.message || 'Failed to update VM';
+            document.getElementById('error-message').classList.remove('hidden');
+
+            // Reset button
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Save Changes';
+        }
+    } catch (error) {
+        // Show error message
+        console.log(error)
+        document.getElementById('error-text').textContent = 'An error occurred while updating the VM';
+        document.getElementById('error-message').classList.remove('hidden');
+
+        // Reset button
+        submitButton.disabled = false;
+        submitButton.innerHTML = 'Save Changes';
+    }
+}
+</script>
+{% endblock %}

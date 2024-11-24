@@ -7,7 +7,7 @@
                 <div class="flex-shrink-0" id="status-{{ vm.uuid }}"></div>
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
-                        document.getElementById('status-{{ vm.uuid }}').innerHTML = get_vm_status('{{ vm.state }}');
+                        document.getElementById('status-{{ vm.uuid }}').innerHTML = get_vm_status('{{ vm.status }}');
                     });
                 </script>
                 <!-- VM Info -->
@@ -26,36 +26,33 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="text-gray-500">OS Type:</span>
-                            <span class="text-gray-900">{{ vm.os_type }}</span>
+                            <span class="text-gray-900">{{ vm.ostype }}</span>
                         </div>
                     </div>
                 </div>
             </div>
             <!-- Action Buttons -->
             <div class="flex space-x-2">
-             {% if vm.state == 'poweroff' %}
+             {% if vm.status != 'running' %}
             <button onclick="startVM('{{ vm.uuid }}')"
                     class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                 Start
             </button>
             {% endif %}
-            {% if vm.state == 'running' %}
+            {% if vm.status == 'running' %}
             <button onclick="stopVM('{{ vm.uuid }}')"
                     class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                 Stop
             </button>
-<!--                            <button onclick="pauseVM('{{ vm.uuid }}')"-->
-<!--                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">-->
-<!--                                Pause-->
-<!--                            </button>-->
             {% endif %}
+
             <button onclick='showVMInfo({
                 name: "{{ vm.name }}",
                 uuid: "{{ vm.uuid }}",
                 status: "{{ vm.status }}",
                 memory: "{{ vm.memory }}",
                 cpus: "{{ vm.cpus }}",
-                os_type: "{{ vm.os_type }}"
+                os_type: "{{ vm.ostype }}"
             })'
                     class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 Info
@@ -64,7 +61,62 @@
                     class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                 Delete
             </button>
+            <button>
+<!--                 <a  href="pages/edit_vm/{{ vm.uuid }}"-->
+                <a href="{{ url_for('vms.get_vm', uuid=vm.uuid) }}"
+                   class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span class="ml-2">Edit</span>
+                </a>
+            </button>
+            <button onclick="takeScreenshot('{{ vm.uuid }}')" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Screenshot
+            </button>
+
             </div>
         </div>
     </div>
 </li>
+
+<script>
+    async function takeScreenshot(uuid) {
+    try {
+        const response = await fetch(`/vms/${uuid}/screenshot`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Show screenshot in a modal or new window
+            showScreenshot(data.screenshot_url);
+        } else {
+            alert('Failed to take screenshot: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error taking screenshot: ' + error);
+    }
+}
+
+function showScreenshot(url) {
+    // Create modal to show screenshot
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg p-4 max-w-4xl">
+            <img src="${url}" alt="VM Screenshot" class="w-full">
+            <div class="mt-4 flex justify-end">
+                <button onclick="this.closest('.fixed').remove()"
+                        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Close</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+</script>

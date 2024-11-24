@@ -5,7 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const contentContainer = document.getElementById('vm-content');
     const loadingSkeleton = document.getElementById('loading-skeleton');
-
+    if(!contentContainer || !loadingSkeleton) {
+        console.log('Content container or loading skeleton not found');
+        return;
+    }
     // Check if the data has been loaded
     if (contentContainer.querySelectorAll('*').length > 0) {
         // Data is loaded, hide the skeleton loader

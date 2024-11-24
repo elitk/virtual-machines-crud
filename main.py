@@ -90,6 +90,18 @@ def download_iso(url, path):
             path.unlink()  # Delete partial download
 
 
+def check_virtualbox():
+    try:
+        vboxmanage = VirtualBoxConfig.get_vboxmanage_path()
+        subprocess.run([vboxmanage, '--version'],
+                      capture_output=True,
+                      check=True)
+        print(f"VirtualBox found at: {vboxmanage}")
+    except Exception as e:
+        print(f"ERROR: VirtualBox not properly configured: {str(e)}")
+        print("Please install VirtualBox and ensure VBoxManage is accessible")
+        sys.exit(1)
+
 app = create_app()  # Create the app instance
 
 if __name__ == '__main__':

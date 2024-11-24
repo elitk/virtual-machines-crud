@@ -8,7 +8,7 @@
 </head>
 <body>
     <nav class="bg-gray-800 p-4">
-        <div class="container mx-auto flex justify-between items-center">
+        <div class="container mx-auto flex justify-between items-center flex-row-reverse">
             <h1 class="text-white text-xl font-bold">My Flask App</h1>
 
             <!-- Desktop Navigation -->
@@ -25,7 +25,7 @@
                         <a href="{{ url_for('vms.create_vm') }}"
                            class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
                                   {% if request.endpoint == 'vms.create_vm' %}bg-gray-900 text-white{% endif %}">
-                            Create
+                            Create VM
                         </a>
                     </li>
                     <li>
@@ -66,7 +66,7 @@
                 </a>
                 <a href="{{ url_for('vms.create_vm') }}"
                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
-                    Create
+                    Create VM
                 </a>
                 <a href="{{ url_for('vms.list_vms') }}"
                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
