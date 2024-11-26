@@ -1,4 +1,4 @@
-import os
+import platform
 import subprocess
 from datetime import datetime
 from typing import Tuple, List, Dict, Union, Optional
@@ -11,8 +11,7 @@ logger = logging.getLogger(__name__)
 
 class VirtualMachineService:
     def __init__(self, config: Optional[VMConfig] = None):
-        # self.config = config
-        # self.vboxmanage = self.config.vboxmanage_path
+        self.config = config
         try:
             # Get VBoxManage path first
             self.vboxmanage = VirtualBoxConfig.get_vboxmanage_path()
@@ -26,6 +25,31 @@ class VirtualMachineService:
         except Exception as e:
             logger.error(f"Failed to initialize VirtualBox service: {str(e)}")
             raise
+
+    def _get_create_vm_command(self, vm_config: VMConfig) -> List[str]:
+        """Generate create VM command based on OS."""
+        system = platform.system().lower()
+
+        base_command = [
+            self.vboxmanage,
+            'createvm',
+            '--name', vm_config.name,
+            '--register'
+        ]
+
+        # Windows uses backslashes and requires different quoting
+        if system == 'windows':
+            base_command = [
+                self.vboxmanage,
+                'createvm',
+                '--name', f'"{vm_config.name}"',  # Quote the name
+                '--register'
+            ]
+            # Ensure Windows path format
+            if isinstance(self.vboxmanage, str):
+                self.vboxmanage = self.vboxmanage.replace('/', '\\')
+
+        return base_command
 
     def _run_command(self, command: List[str], error_message: str) -> Tuple[bool, str]:
         try:
@@ -131,7 +155,7 @@ class VirtualMachineService:
             return False, "No configuration provided"
 
         steps = [
-            (self._create_base_vm, "Creating base VM"),
+            (self._create_base_vm(self.config), "Creating base VM"),
             (self._modify_vm_settings, "Modifying VM settings"),
             (self._add_storage_controllers, "Adding storage controllers"),
             (self._create_and_attach_hard_disk, "Creating and attaching hard disk"),
@@ -148,14 +172,26 @@ class VirtualMachineService:
 
         return True, "VM created and started successfully"
 
-    def _create_base_vm(self) -> Tuple[bool, str]:
+    def _create_base_vm(self, vm_config: VMConfig) -> Tuple[bool, str]:
         """Create the base VM."""
-        command = [
-            'vboxmanage', 'createvm',
-            '--name', self.config.name,
-            '--register'
-        ]
-        return self._run_command(command, "Failed to create base VM")
+        try:
+            # Create VM
+            create_command = self._get_create_vm_command(vm_config)
+            success, output = self._run_command(
+                create_command,
+                "Failed to create base VM"
+            )
+            if not success:
+                return False, f"Failed to create base VM: {output}"
+
+            command = [
+                'vboxmanage', 'createvm',
+                '--name', self.config.name,
+                '--register'
+            ]
+            return self._run_command(command, "Failed to create base VM")
+        except Exception as e:
+            return False, str(e)
 
     def _modify_vm_settings(self) -> Tuple[bool, str]:
         """Modify VM settings with memory, network, etc."""

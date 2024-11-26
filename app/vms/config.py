@@ -24,7 +24,8 @@ class VirtualBoxConfig:
 
             for path in possible_paths:
                 if os.path.exists(path):
-                    return path
+                    # Ensure Windows path format
+                    return path.replace('/', '\\')
 
             raise FileNotFoundError(
                 "VBoxManage.exe not found. Please install VirtualBox or add it to PATH"
