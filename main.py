@@ -12,7 +12,7 @@ from urllib3 import Retry
 
 # ISO_PATH = "path/to/iso/ubuntu-24.04-desktop-amd64.iso"
 from app import create_app  # Import the create_app function
-from app.vms import VirtualBoxConfig
+# from app.vms import VirtualBoxConfig
 
 ISO_PATHS = {
     'ubuntu': {
@@ -152,17 +152,17 @@ def download_iso(url, path):
     return False
 
 
-def check_virtualbox():
-    try:
-        vboxmanage = VirtualBoxConfig.get_vboxmanage_path()
-        subprocess.run([vboxmanage, '--version'],
-                       capture_output=True,
-                       check=True)
-        print(f"VirtualBox found at: {vboxmanage}")
-    except Exception as e:
-        print(f"ERROR: VirtualBox not properly configured: {str(e)}")
-        print("Please install VirtualBox and ensure VBoxManage is accessible")
-        sys.exit(1)
+# def check_virtualbox():
+#     try:
+#         vboxmanage = VirtualBoxConfig.get_vboxmanage_path()
+#         subprocess.run([vboxmanage, '--version'],
+#                        capture_output=True,
+#                        check=True)
+#         print(f"VirtualBox found at: {vboxmanage}")
+#     except Exception as e:
+#         print(f"ERROR: VirtualBox not properly configured: {str(e)}")
+#         print("Please install VirtualBox and ensure VBoxManage is accessible")
+#         sys.exit(1)
 
 
 app = create_app()  # Create the app instance

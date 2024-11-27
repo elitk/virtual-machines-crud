@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Tuple, List, Dict, Union, Optional
 import logging
 import re
-from .config import VMConfig, VirtualBoxConfig
+from .config import VMConfig
 from pathlib import Path
 logger = logging.getLogger(__name__)
 
@@ -12,24 +12,22 @@ logger = logging.getLogger(__name__)
 class VirtualMachineService:
     def __init__(self, config: Optional[VMConfig] = None):
         self.config = config
-        try:
-            # Get VBoxManage path first
-            self.vboxmanage = VirtualBoxConfig.get_vboxmanage_path()
-            if not self.vboxmanage:
-                raise ValueError("VBoxManage path not found")
-
-            # Then initialize config
-            self.config = VMConfig(name="default")
-
-            logger.info(f"VirtualBox initialized with VBoxManage at: {self.vboxmanage}")
-        except Exception as e:
-            logger.error(f"Failed to initialize VirtualBox service: {str(e)}")
-            raise
+        # try:
+        #     # Get VBoxManage path first
+        #     self.vboxmanage = VirtualBoxConfig.get_vboxmanage_path()
+        #     if not self.vboxmanage:
+        #         raise ValueError("VBoxManage path not found")
+        #
+        #     # Then initialize config
+        #     self.config = VMConfig(name="default")
+        #
+        #     logger.info(f"VirtualBox initialized with VBoxManage at: {self.vboxmanage}")
+        # except Exception as e:
+        #     logger.error(f"Failed to initialize VirtualBox service: {str(e)}")
+        #     raise
 
     def _get_create_vm_command(self, vm_config: VMConfig) -> List[str]:
-        """Generate create VM command based on OS."""
-        system = platform.system().lower()
-
+        """Generate create VM command."""
         base_command = [
             self.vboxmanage,
             'createvm',
@@ -37,23 +35,15 @@ class VirtualMachineService:
             '--register'
         ]
 
-        # Windows uses backslashes and requires different quoting
-        if system == 'windows':
-            base_command = [
-                self.vboxmanage,
-                'createvm',
-                '--name', f'"{vm_config.name}"',  # Quote the name
-                '--register'
-            ]
-            # Ensure Windows path format
-            if isinstance(self.vboxmanage, str):
-                self.vboxmanage = self.vboxmanage.replace('/', '\\')
+        if platform.system().lower() == 'windows':
+            self.vboxmanage = self.vboxmanage.replace('/', '\\')
+            base_command[3] = f'"{vm_config.name}"'
 
         return base_command
 
     def _run_command(self, command: List[str], error_message: str) -> Tuple[bool, str]:
         try:
-            command[0] = self.vboxmanage
+            # command[0] = self.vboxmanage
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             # Log the complete output for debugging
             logger.debug(f"Command stdout: {result.stdout}")
@@ -155,7 +145,7 @@ class VirtualMachineService:
             return False, "No configuration provided"
 
         steps = [
-            (self._create_base_vm(self.config), "Creating base VM"),
+            (self._create_base_vm, "Creating base VM"),
             (self._modify_vm_settings, "Modifying VM settings"),
             (self._add_storage_controllers, "Adding storage controllers"),
             (self._create_and_attach_hard_disk, "Creating and attaching hard disk"),
@@ -172,26 +162,26 @@ class VirtualMachineService:
 
         return True, "VM created and started successfully"
 
-    def _create_base_vm(self, vm_config: VMConfig) -> Tuple[bool, str]:
-        """Create the base VM."""
-        try:
-            # Create VM
-            create_command = self._get_create_vm_command(vm_config)
-            success, output = self._run_command(
-                create_command,
-                "Failed to create base VM"
-            )
-            if not success:
-                return False, f"Failed to create base VM: {output}"
+    # def _create_base_vm(self) -> Tuple[bool, str]:
+    #     """Create the base VM."""
+    #     try:
+    #         # Create VirtualBox VMs directory
+    #         vm_dir = Path("~/VirtualBox VMs").expanduser()
+    #         vm_dir.mkdir(parents=True, exist_ok=True)
+    #
+    #         create_command = self._get_create_vm_command(self.config)
+    #         success, output = self._run_command(create_command, "Failed to create base VM")
+    #         return success, output
+    #     except Exception as e:
+    #         return False, str(e)
 
-            command = [
-                'vboxmanage', 'createvm',
-                '--name', self.config.name,
-                '--register'
-            ]
-            return self._run_command(command, "Failed to create base VM")
-        except Exception as e:
-            return False, str(e)
+    def _create_base_vm(self) -> Tuple[bool, str]:
+        command = [
+            'vboxmanage', 'createvm',
+            '--name', self.config.name,
+            '--register'
+        ]
+        return self._run_command(command, "Failed to create base VM")
 
     def _modify_vm_settings(self) -> Tuple[bool, str]:
         """Modify VM settings with memory, network, etc."""
@@ -264,7 +254,7 @@ class VirtualMachineService:
     def _start_vm(self) -> Tuple[bool, str]:
         """Start the virtual machine."""
         return self._run_command(
-            ['vboxmanage', 'startvm', self.config.name, '--type', 'gui'],
+            ['vboxmanage', 'startvm', self.config.name, '--type', 'headless'],
             "Failed to start VM"
         )
 
