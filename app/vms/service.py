@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Tuple, List, Dict, Union, Optional
 import logging
 import re
-from .config import VMConfig
+from .config import VMConfig, VirtualBoxConfig
 from pathlib import Path
 logger = logging.getLogger(__name__)
 
@@ -12,19 +12,7 @@ logger = logging.getLogger(__name__)
 class VirtualMachineService:
     def __init__(self, config: Optional[VMConfig] = None):
         self.config = config
-        # try:
-        #     # Get VBoxManage path first
-        #     self.vboxmanage = VirtualBoxConfig.get_vboxmanage_path()
-        #     if not self.vboxmanage:
-        #         raise ValueError("VBoxManage path not found")
-        #
-        #     # Then initialize config
-        #     self.config = VMConfig(name="default")
-        #
-        #     logger.info(f"VirtualBox initialized with VBoxManage at: {self.vboxmanage}")
-        # except Exception as e:
-        #     logger.error(f"Failed to initialize VirtualBox service: {str(e)}")
-        #     raise
+        self.vboxmanage = VirtualBoxConfig.get_vboxmanage_path()
 
     def _get_create_vm_command(self, vm_config: VMConfig) -> List[str]:
         """Generate create VM command."""
@@ -43,7 +31,7 @@ class VirtualMachineService:
 
     def _run_command(self, command: List[str], error_message: str) -> Tuple[bool, str]:
         try:
-            # command[0] = self.vboxmanage
+            command[0] = self.vboxmanage
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             # Log the complete output for debugging
             logger.debug(f"Command stdout: {result.stdout}")
@@ -162,31 +150,32 @@ class VirtualMachineService:
 
         return True, "VM created and started successfully"
 
-    # def _create_base_vm(self) -> Tuple[bool, str]:
-    #     """Create the base VM."""
-    #     try:
-    #         # Create VirtualBox VMs directory
-    #         vm_dir = Path("~/VirtualBox VMs").expanduser()
-    #         vm_dir.mkdir(parents=True, exist_ok=True)
-    #
-    #         create_command = self._get_create_vm_command(self.config)
-    #         success, output = self._run_command(create_command, "Failed to create base VM")
-    #         return success, output
-    #     except Exception as e:
-    #         return False, str(e)
-
     def _create_base_vm(self) -> Tuple[bool, str]:
-        command = [
-            'vboxmanage', 'createvm',
-            '--name', self.config.name,
-            '--register'
-        ]
-        return self._run_command(command, "Failed to create base VM")
+        """Create the base VM."""
+        try:
+            # Create VirtualBox VMs directory
+            vm_dir = Path("~/VirtualBox VMs").expanduser()
+            vm_dir.mkdir(parents=True, exist_ok=True)
+
+            create_command = self._get_create_vm_command(self.config)
+            success, output = self._run_command(create_command, "Failed to create base VM")
+            return success, output
+        except Exception as e:
+            return False, str(e)
+
+    # def _create_base_vm(self) -> Tuple[bool, str]:
+    #     command = [
+    #         'vboxmanage', 'createvm',
+    #         '--name', self.config.name,
+    #         '--register'
+    #     ]
+    #     return self._run_command(command, "Failed to create base VM")
+
 
     def _modify_vm_settings(self) -> Tuple[bool, str]:
         """Modify VM settings with memory, network, etc."""
         command = [
-            'vboxmanage', 'modifyvm', self.config.name,
+            self.vboxmanage, 'modifyvm', self.config.name,
             '--memory', str(self.config.memory),
             '--acpi', 'on',
             '--boot1', 'dvd',
@@ -217,6 +206,8 @@ class VirtualMachineService:
     def _create_and_attach_hard_disk(self) -> Tuple[bool, str]:
         """Create and attach the virtual hard disk."""
         # Create HDD
+        vm_dir = Path("~/VirtualBox VMs").expanduser()
+        vm_dir.mkdir(parents=True, exist_ok=True)
         vdi_path = f"~/VirtualBox VMs/{self.config.name}/{self.config.name}.vdi"
         success, message = self._run_command(
             ['vboxmanage', 'createhd',
