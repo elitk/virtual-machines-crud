@@ -1,0 +1,28 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - '5000:5000'
+    command: flask run --host=0.0.0.0
+    environment:
+      - HOST_SERVICE_URL=http://host:5001  # Change this to use service name
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+  host:
+    build: .
+    ports:
+      - '5001:5001'
+    command: python -m app.host_service
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

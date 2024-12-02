@@ -12,39 +12,61 @@
             <h1 class="text-white text-xl font-bold">My Flask App</h1>
 
             <!-- Desktop Navigation -->
-            <div class="hidden md:block">
-                <ul class="flex space-x-4">
-                    <li>
-                        <a href="{{ url_for('index') }}"
-                           class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
-                                  {% if request.endpoint == 'index' %}bg-gray-900 text-white{% endif %}">
-                            Home
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('vms.create_vm') }}"
-                           class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
-                                  {% if request.endpoint == 'vms.create_vm' %}bg-gray-900 text-white{% endif %}">
-                            Create VM
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('vms.list_vms') }}"
-                           class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
-                                  {% if request.endpoint == 'vms.list_vms' %}bg-gray-900 text-white{% endif %}">
-                            List VM
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('vms.list_running_vms') }}"
-                           class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
-                                  {% if request.endpoint == 'vms.list_running_vms' %}bg-gray-900 text-white{% endif %}">
-                            List Running VM
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
+        <div class="hidden md:block">
+           <ul class="flex space-x-4">
+               <li>
+                   <a href="{{ url_for('index') }}"
+                      class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
+                             {% if request.endpoint == 'index' %}bg-gray-900 text-white{% endif %}">
+                       Home
+                   </a>
+               </li>
+               {% if current_user.is_authenticated %}
+                   <li>
+                       <a href="{{ url_for('vms.create_vm') }}"
+                          class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
+                                 {% if request.endpoint == 'vms.create_vm' %}bg-gray-900 text-white{% endif %}">
+                           Create VM
+                       </a>
+                   </li>
+                   <li>
+                       <a href="{{ url_for('vms.list_vms') }}"
+                          class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
+                                 {% if request.endpoint == 'vms.list_vms' %}bg-gray-900 text-white{% endif %}">
+                           List VM
+                       </a>
+                   </li>
+                   <li>
+                       <a href="{{ url_for('vms.list_running_vms') }}"
+                          class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
+                                 {% if request.endpoint == 'vms.list_running_vms' %}bg-gray-900 text-white{% endif %}">
+                           List Running VM
+                       </a>
+                   </li>
+                   <li>
+                       <a href="{{ url_for('auth.logout') }}"
+                          class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                           Logout ({{ current_user.username }})
+                       </a>
+                   </li>
+               {% else %}
+                   <li>
+                       <a href="{{ url_for('auth.login') }}"
+                          class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
+                                 {% if request.endpoint == 'auth.login' %}bg-gray-900 text-white{% endif %}">
+                           Login
+                       </a>
+                   </li>
+                   <li>
+                       <a href="{{ url_for('auth.register') }}"
+                          class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
+                                 {% if request.endpoint == 'auth.register' %}bg-gray-900 text-white{% endif %}">
+                           Register
+                       </a>
+                   </li>
+               {% endif %}
+           </ul>
+        </div>
             <!-- Mobile Menu Button -->
             <div class="md:hidden">
                 <button type="button"
@@ -75,6 +97,11 @@
                 <a href="{{ url_for('vms.list_running_vms') }}"
                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
                     List Running VM
+                </a>
+
+                <a href="{{ url_for('auth.login') }}"
+                   class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                    Login
                 </a>
             </div>
         </div>
@@ -138,7 +165,23 @@
         </div>
         {% endif %}
     </main>
-
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="my-4 {{ 'bg-green-100 border-green-400 text-green-700' if category == 'success' else 'bg-red-100 border-red-400 text-red-700' }} border px-4 py-3 rounded relative" role="alert">
+                    <span class="block sm:inline">{{ message }}</span>
+                    <button class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none'">
+                        <svg class="fill-current h-6 w-6" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <title>Close</title>
+                            <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+                        </svg>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    </div>
     <script>
         function toggleMobileMenu() {
             const mobileMenu = document.getElementById('mobileMenu');
