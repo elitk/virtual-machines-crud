@@ -224,38 +224,39 @@ def take_screenshot(uuid):
         })
 
 
+# @vm_bp.route('/create', methods=['GET', 'POST'])
+# @login_required
+# def create_vm():
+#     print(HOST_SERVICE_URL)
+#     if request.method == 'POST':
+#         try:
+#             data = request.get_json()
+#             response = requests.post(
+#                 f'{HOST_SERVICE_URL}/api/vms/create',
+#                 json=data
+#             )
+#             return response.json()
+#         except requests.RequestException as e:
+#             return jsonify({
+#                 'success': False,
+#                 'message': f"Failed to communicate with host service: {str(e)}"
+#             })
+#
+#     return render_template('vms/create.html')
+
 @vm_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_vm():
-    print(HOST_SERVICE_URL)
     if request.method == 'POST':
-        try:
-            data = request.get_json()
-            response = requests.post(
-                f'{HOST_SERVICE_URL}/api/vms/create',
-                json=data
-            )
-            return response.json()
-        except requests.RequestException as e:
-            return jsonify({
-                'success': False,
-                'message': f"Failed to communicate with host service: {str(e)}"
-            })
+        data = request.get_json()
+
+        config = VMConfig(
+            name=data.get('name'),
+            memory=int(data.get('memory', 2048)),
+            os_type=data.get('os_type')
+        )
+        vm_service = VirtualMachineService(config)
+        success, message = vm_service.create_vm()
+        return jsonify({'success': success, 'message': message})
 
     return render_template('vms/create.html')
-
-    # @vm_bp.route('/create', methods=['GET', 'POST'])
-    # def create_vm():
-    #     if request.method == 'POST':
-    #         data = request.get_json()
-    #
-    #         config = VMConfig(
-    #             name=data.get('name'),
-    #             memory=int(data.get('memory', 2048)),
-    #             os_type=data.get('os_type')
-    #         )
-    #         vm_service = VirtualMachineService(config)
-    #         success, message = vm_service.create_vm()
-    #         return jsonify({'success': success, 'message': message})
-    #
-    #     return render_template('vms/create.html')
