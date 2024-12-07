@@ -2,6 +2,9 @@ import os
 
 import requests
 from flask import Blueprint, render_template, request, jsonify, flash, url_for
+from flask_login import login_required
+
+from app.utils.logger import create_log
 # from flask_login import login_required
 from app.vms.service import VirtualMachineService
 from app.vms.config import VMConfig
@@ -12,12 +15,14 @@ HOST_SERVICE_URL = os.getenv('HOST_SERVICE_URL', 'http://localhost:5001')
 
 
 @vm_bp.route('/<uuid>/edit')
+@login_required
 def edit_vm(uuid):
     vm = get_vm(uuid)  # Your function to get VM details
     return render_template('pages/edit_vm.html', vm=vm)
 
 
 @vm_bp.route('/<uuid>', methods=['PUT'])
+@login_required
 def update_vm(uuid):
     try:
         # Update VM settings
@@ -55,6 +60,7 @@ def update_vm(uuid):
 
 
 @vm_bp.route('/<uuid>', methods=['GET'])
+@login_required
 def get_vm(uuid):
     vm_service = VirtualMachineService()
     success, result = vm_service.get_vm_by_uuid(uuid)
@@ -64,6 +70,7 @@ def get_vm(uuid):
 
 
 @vm_bp.route('/<uuid>', methods=['DELETE'])
+@login_required
 def delete_vm(uuid):
     delete_files = request.args.get('delete_files')
 
@@ -76,6 +83,7 @@ def delete_vm(uuid):
 
 
 @vm_bp.route('/<uuid>/start', methods=['POST'])
+@login_required
 def start_vm(uuid):
     vm_service = VirtualMachineService()
     success, message = vm_service.start_vm(uuid)
@@ -83,6 +91,7 @@ def start_vm(uuid):
 
 
 @vm_bp.route('/<uuid>/stop', methods=['POST'])
+@login_required
 def stop_vm(uuid):
     vm_service = VirtualMachineService()
     success, message = vm_service.stop_vm(uuid)
@@ -121,6 +130,7 @@ def stop_vm(uuid):
 #                                vms=[])
 
 @vm_bp.route('/list_vms', methods=['GET'])
+@login_required
 def list_vms():
     try:
         # Call host service
@@ -155,6 +165,7 @@ def list_vms():
 
 
 @vm_bp.route('/list_running_vms', methods=['GET'])
+@login_required
 def list_running_vms():
     # Initialize loading state
     try:
@@ -177,6 +188,7 @@ def list_running_vms():
 
 
 @vm_bp.route('/<uuid>/screenshot', methods=['POST'])
+@login_required
 def take_screenshot(uuid):
     try:
         vm_service = VirtualMachineService()
@@ -189,12 +201,22 @@ def take_screenshot(uuid):
                 'screenshot_url': url_for('static', filename=f'screenshots/{os.path.basename(result)}')
             })
         else:
+            create_log(
+                action="Create screenshot",
+                description=f"Failed to create screenshot: {result}",
+                status="error"
+            )
             return jsonify({
                 'success': False,
                 'message': result
             })
 
     except Exception as e:
+        create_log(
+            action="Create screenshot",
+            description=f"Failed to create screenshot: {str(e)}",
+            status="error"
+        )
         return jsonify({
             'success': False,
             'message': str(e)
@@ -202,6 +224,7 @@ def take_screenshot(uuid):
 
 
 @vm_bp.route('/create', methods=['GET', 'POST'])
+@login_required
 def create_vm():
     print(HOST_SERVICE_URL)
     if request.method == 'POST':
