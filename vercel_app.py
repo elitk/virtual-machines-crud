@@ -6,14 +6,12 @@ from app.models.user import User
 import logging
 import os
 
-# Enhanced logging for production
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Create Flask app
 app = create_app()
 
 
