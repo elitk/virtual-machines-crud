@@ -197,6 +197,11 @@ def take_screenshot(uuid):
 
         if success:
             # Return the screenshot path
+            create_log(
+                action="Create screenshot",
+                description="Screenshot created successfully",
+                status="success"
+            )
             return jsonify({
                 'success': True,
                 'screenshot_url': url_for('static', filename=f'screenshots/{os.path.basename(result)}')

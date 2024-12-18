@@ -6,7 +6,15 @@ module.exports = {
     "./app/templates/**/*.html", // Your Flask template files
     "./main.py",  // Any other files that might contain Tailwind classes
   ],  theme: {
-    extend: {},
+    extend: {
+        colors: {
+            'primary-green': {
+                DEFAULT: '#B8D900',
+                'light': '#C4E533',
+                'dark':'#A5C200'
+            }
+        }
+    },
   },
   plugins: [],
 }

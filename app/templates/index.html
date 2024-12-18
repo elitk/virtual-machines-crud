@@ -1,18 +1,155 @@
-{% extends "base.html" %}
-{% set loop_count = 1 %}
-{% set stats_count = 1 %}
-{% set is_loading = False %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM Manager</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
 
-{% block title %}Home{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <section class="bg-gradient-to-r from-primary-green to-primary-green-light text-white py-24 text-center">
+        <div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">Cyber-Powered VM Manager</h1>
+            <p class="text-xl mb-8">Secure and manage your virtual machines with ease.</p>
+            <a href="{{ url_for('auth.login') }}"
+               class="inline-block bg-primary-green-light text-bg-primary-green-light px-8 py-4 rounded-lg font-bold hover:bg-primary-green-dark transition-colors duration-300 shadow-lg">
+                Get Started
+            </a>
+        </div>
+    </section>
 
-{% block content %}
-<div class="bg-white shadow-md rounded-lg p-6">
-    <h2 class="text-2xl font-bold mb-4">Welcome to Flask + Tailwind</h2>
-    <p class="text-gray-600">
-        This is a sample page using Flask and Tailwind CSS with an improved navigation bar.
-    </p>
-    <button class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Click me
+    <section class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold mb-12 text-center text-gray-800">Key Features</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center text-center transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                <i class="fas fa-server text-5xl text-primary-green mb-6 animate-pulse"></i>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Create VM</h2>
+                <p class="text-gray-600 mb-6">Provision new virtual machines with ease.</p>
+                <a href="{{ url_for('vms.create_vm') }}"
+                   class="bg-primary-green text-white px-6 py-3 rounded-lg font-bold hover:bg-primary-green-dark transition-colors duration-300">
+                    Create VM
+                </a>
+            </div>
+
+            <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center text-center transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                <i class="fas fa-chart-line text-5xl text-primary-green mb-6 animate-pulse"></i>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">View VMs</h2>
+                <p class="text-gray-600 mb-6">Monitor and manage all your virtual machines.</p>
+                <a href="{{ url_for('vms.list_vms') }}"
+                   class="bg-primary-green text-white px-6 py-3 rounded-lg font-bold hover:bg-primary-green-dark transition-colors duration-300">
+                    View VMs
+                </a>
+            </div>
+
+            <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center text-center transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                <i class="fas fa-shield-alt text-5xl text-primary-green mb-6 animate-pulse"></i>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Secure Logs</h2>
+                <p class="text-gray-600 mb-6">Review and analyze your secure system logs.</p>
+                <a href="{{ url_for('logs.view_logs') }}"
+                   class="bg-primary-green text-white px-6 py-3 rounded-lg font-bold hover:bg-primary-green-dark transition-colors duration-300">
+                    View Logs
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-white py-16">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
+            <div class="md:w-1/2">
+                <h2 class="text-3xl font-bold mb-6 text-gray-800">Powerful & Secure</h2>
+                <p class="text-lg text-gray-600 mb-8">Our VM Manager is built with the latest cybersecurity best practices to protect your virtual machines from threats and vulnerabilities.</p>
+                <img src="https://via.placeholder.com/600x400.png?text=VM+Security+Image" alt="VM Security Image"
+                     class="rounded-xl shadow-lg w-full">
+            </div>
+            <div class="md:w-1/2">
+                <h2 class="text-3xl font-bold mb-6 text-gray-800">Easy to Use</h2>
+                <p class="text-lg text-gray-600 mb-8">Our intuitive interface makes it simple to manage your VMs, from creating and deploying to monitoring and troubleshooting.</p>
+                <div class="w-full aspect-video rounded-xl shadow-lg overflow-hidden">
+                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
+                            frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold mb-12 text-center text-gray-800">Impressive Results</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div class="bg-white p-8 rounded-xl shadow-lg">
+                <i class="fas fa-users text-4xl text-primary-green mb-4"></i>
+                <div class="text-4xl font-bold text-gray-800 mb-2">10,000+</div>
+                <p class="text-gray-600">Happy Users</p>
+            </div>
+            <div class="bg-white p-8 rounded-xl shadow-lg">
+                <i class="fas fa-server text-4xl text-primary-green mb-4"></i>
+                <div class="text-4xl font-bold text-gray-800 mb-2">5,000+</div>
+                <p class="text-gray-600">VMs Managed</p>
+            </div>
+            <div class="bg-white p-8 rounded-xl shadow-lg">
+                <i class="fas fa-star text-4xl text-primary-green mb-4"></i>
+                <div class="text-4xl font-bold text-gray-800 mb-2">4.8</div>
+                <p class="text-gray-600">Average Rating</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold mb-12 text-center text-gray-800">What Our Users Say</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white p-8 rounded-xl shadow-lg">
+                <p class="text-gray-600 italic mb-6">"This VM Manager has revolutionized the way I manage my virtual infrastructure. It's incredibly easy to use, secure, and efficient. Highly recommend it!"</p>
+                <p class="font-bold text-gray-800">- John Doe, IT Manager</p>
+            </div>
+            <div class="bg-white p-8 rounded-xl shadow-lg">
+                <p class="text-gray-600 italic mb-6">"The logging and monitoring features are top-notch. I can now quickly identify and resolve any issues that arise. A game-changer for my team."</p>
+                <p class="font-bold text-gray-800">- Jane Smith, System Administrator</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold mb-8 text-center text-gray-800">About Our VM Manager</h2>
+        <div class="max-w-3xl mx-auto text-center">
+            <p class="text-lg text-gray-600 mb-6">
+                Our VM Manager is a powerful tool designed to help you manage your virtual machines with ease and security.
+                Featuring robust monitoring, logging, and control capabilities, our application ensures your virtual infrastructure
+                is always secure and optimized for performance.
+            </p>
+            <p class="text-lg text-gray-600 mb-6">
+                Built with the latest cyber-security best practices, our VM Manager keeps your virtual machines safe from threats
+                and vulnerabilities. With detailed logging and analytics, you can quickly identify and address any security
+                concerns that arise.
+            </p>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2025 VM Manager</p>
+        </div>
+    </footer>
+
+    <button onclick="scrollToTop()"
+            class="fixed bottom-8 right-8 bg-primary-green-light text-white p-4 rounded-full shadow-lg hover:bg-primary-green-dark transition-colors duration-300 hidden">
+        <i class="fas fa-arrow-up"></i>
     </button>
-</div>
-{% endblock %}
+
+    <script>
+        window.addEventListener('scroll', function() {
+            const backToTopButton = document.querySelector('.fixed.bottom-8');
+            if (window.pageYOffset > 100) {
+                backToTopButton.classList.remove('hidden');
+            } else {
+                backToTopButton.classList.add('hidden');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

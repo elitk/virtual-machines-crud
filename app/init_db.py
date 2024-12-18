@@ -18,11 +18,11 @@ def create_database():
         cursor = conn.cursor()
 
         # Check if database exists
-        cursor.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = 'vm_manager'")
+        cursor.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = 'vm_manager_test'")
         exists = cursor.fetchone()
 
         if not exists:
-            cursor.execute('CREATE DATABASE vm_manager')
+            cursor.execute('CREATE DATABASE vm_manager_test')
             print("Database created!")
 
         cursor.close()
@@ -46,6 +46,8 @@ def init_db():
                 admin = User(
                     username='admin',
                     email='admin@example.com'
+
+
                 )
                 admin.set_password('admin123')
                 db.session.add(admin)
