@@ -34,42 +34,17 @@ function showVMInfo(vm) {
         const modal = document.getElementById('vmInfoModal');
         const modalContent = document.getElementById('modal-content');
         const modalTitle = document.getElementById('modal-title');
-
+        let contentHtml = `<div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="space-y-3">`
         // Update modal title
         modalTitle.textContent = `VM Information: ${name}`;
-
-        // Create content HTML with additional fields
-        const contentHtml = `
-            <div class="grid grid-cols-2 gap-4 text-sm">
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-gray-500 text-xs">Name</label>
-                        <span class="text-gray-900">${name}</span>
-                    </div>
-                    <div>
-                        <label class="block text-gray-500 text-xs">Status</label>
-                        <span class="text-gray-900">${status}</span>
-                    </div>
-                    <div>
-                        <label class="block text-gray-500 text-xs">UUID</label>
-                        <span class="text-gray-900 font-mono text-xs break-all">${uuid}</span>
-                    </div>
-                    <div>
-                        <label class="block text-gray-500 text-xs">Memory</label>
-                        <span class="text-gray-900">${memory} MB</span>
-                    </div>
-                    <div>
-                        <label class="block text-gray-500 text-xs">CPUs</label>
-                        <span class="text-gray-900">${cpus}</span>
-                    </div>
-                    <div>
-                        <label class="block text-gray-500 text-xs">OS Type</label>
-                        <span class="text-gray-900">${os_type}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-
+        Object.keys(vm).forEach(key => {
+            contentHtml += `<div>
+                        <label class="block text-gray-500 text-xs">${key.toLocaleUpperCase()}</label>
+                        <span class="text-gray-900">${vm[key]}</span>
+                    </div>`
+        });
+        contentHtml += `</div></div>`
         modalContent.innerHTML = contentHtml;
         modal.classList.remove('hidden');
 
