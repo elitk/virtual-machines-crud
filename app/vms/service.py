@@ -409,6 +409,12 @@ class VirtualMachineService:
     def take_screenshot(self, uuid: str) -> Tuple[bool, str]:
         """Take a screenshot of the VM."""
         try:
+            success, vm_details = self.get_vm_by_uuid(uuid)  # Check if VM exists
+            if success:
+                vm_state = vm_details.get('VMState')
+                if vm_state != "running":
+                    return False, "VM must be running to take a screenshot"
+
             # Create screenshots directory using absolute path
             base_dir = Path(__file__).parent.parent  # Go up one directory from current file
             screenshot_dir = base_dir / 'static' / 'screenshots'
@@ -430,3 +436,25 @@ class VirtualMachineService:
         except Exception as e:
             logger.error(f"Error taking screenshot: {str(e)}")
             return False, f"Error taking screenshot: {str(e)}"
+
+    def get_vm_network_info(self, vm_name: str) -> Tuple[bool, Dict]:
+        try:
+            # Get IP address
+            ip_cmd = [self.vboxmanage, 'guestproperty', 'get', vm_name, '/VirtualBox/GuestInfo/Net/0/V4/IP']
+            success, ip_output = self._run_command(ip_cmd, "Failed to get IP")
+
+            # Get MAC address
+            mac_cmd = [self.vboxmanage, 'showvminfo', vm_name, '--machinereadable']
+            success, mac_output = self._run_command(mac_cmd, "Failed to get MAC")
+
+            mac_address = None
+            for line in mac_output.splitlines():
+                if 'macaddress1' in line.lower():
+                    mac_address = line.split('=')[1].strip('"')
+
+            return True, {
+                'ip': ip_output.strip() if success else 'Not available',
+                'mac': mac_address if mac_address else 'Not available'
+            }
+        except Exception as e:
+            return False, {'error': str(e)}

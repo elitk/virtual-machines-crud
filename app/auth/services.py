@@ -36,6 +36,8 @@ class AuthService:
         try:
             user = User.query.filter_by(username=username).first()
             if user and user.check_password(password):
+                user.last_login = db.func.now()
+                db.session.commit()
                 return True, "Login successful", user
             return False, "Invalid username or password", None
         except Exception as e:

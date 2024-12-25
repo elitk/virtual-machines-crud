@@ -265,3 +265,12 @@ def create_vm():
         return jsonify({'success': success, 'message': message})
 
     return render_template('vms/create.html')
+
+
+# app/vms/routes.py
+@vm_bp.route('/<name>/network', methods=['GET'])
+@login_required
+def get_network_info(name):
+    vm_service = VirtualMachineService()
+    success, info = vm_service.get_vm_network_info(name)
+    return jsonify(info)

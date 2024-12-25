@@ -25,6 +25,18 @@ class VirtualBoxConfig:
                 if os.path.exists(path):
                     return path
             raise FileNotFoundError("VBoxManage.exe not found")
+
+        if system == 'darwin':  # macOS
+            # Common Mac paths
+            paths = [
+                '/usr/local/bin/vboxmanage',
+                '/opt/homebrew/bin/vboxmanage',
+                'vboxmanage'  # if in PATH
+            ]
+            for path in paths:
+                if os.path.exists(path):
+                    return path
+            raise FileNotFoundError("VBoxManage not found")
         return 'vboxmanage'  # For Mac/Linux where it's in PATH
 
 

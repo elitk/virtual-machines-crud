@@ -1,6 +1,4 @@
 import platform
-import subprocess
-import sys
 import time
 
 import requests

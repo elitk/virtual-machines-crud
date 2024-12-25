@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
 </head>
 <body>
-    <nav class="bg-gray-800 p-4">
+    <nav class="bg-gray-800">
         <div class="container mx-auto flex justify-between items-center flex-row-reverse">
-            <h1 class="text-white text-xl font-bold">My Flask App</h1>
-
+<!--            <h1 class="text-white text-xl font-bold">My Flask App</h1>-->
+        <img alt="ono-logo" class="bg-white h-full" src="{{ url_for('static', filename='images/logo-ono.png') }}">
             <!-- Desktop Navigation -->
-        <div class="hidden md:block">
+        <div class="hidden md:block p-4">
            <ul class="flex space-x-4">
                <li>
                    <a href="{{ url_for('index') }}"
