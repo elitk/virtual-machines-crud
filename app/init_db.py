@@ -3,6 +3,8 @@ from app.models.user import User
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+from app.utils.logger import create_log
+
 
 def create_database():
     try:
@@ -55,6 +57,11 @@ def init_db():
                 print("Admin user created!")
 
     except Exception as e:
+        create_log(
+            action="Initializing database",
+            description=f"Failed to initializing database: {str(e)}",
+            status="error"
+        )
         print(f"Error initializing database: {e}")
 
 

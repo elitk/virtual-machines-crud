@@ -3,6 +3,7 @@ from typing import Tuple, Optional
 from app.auth.validators import validate_email
 from app.extensions import db
 from app.models.user import User
+from app.utils.logger import create_log
 
 
 class AuthService:
@@ -28,6 +29,11 @@ class AuthService:
 
             return True, "Registration successful"
         except Exception as e:
+            create_log(
+                action="Registration failed",
+                description=f"Failed to registration user: {str(e)}",
+                status="error"
+            )
             db.session.rollback()
             return False, str(e)
 

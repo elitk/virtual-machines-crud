@@ -6,6 +6,9 @@ import logging
 import re
 from .config import VMConfig, VirtualBoxConfig
 from pathlib import Path
+
+from ..utils.logger import create_log
+
 logger = logging.getLogger(__name__)
 
 
@@ -135,6 +138,7 @@ class VirtualMachineService:
         steps = [
             (self._create_base_vm, "Creating base VM"),
             (self._modify_vm_settings, "Modifying VM settings"),
+            # (self._create_hostonly_network, "Creating host-only network"),
             (self._add_storage_controllers, "Adding storage controllers"),
             (self._create_and_attach_hard_disk, "Creating and attaching hard disk"),
             (self._attach_iso, "Attaching ISO"),
@@ -185,6 +189,25 @@ class VirtualMachineService:
         ]
         return self._run_command(command, "Failed to modify VM settings")
 
+    def _create_hostonly_network(self) -> Tuple[bool, str]:
+        """Create host-only network adapter"""
+        # First check if vboxnet0 exists
+        check_cmd = [self.vboxmanage, 'list', 'hostonlyifs']
+        success, output = self._run_command(check_cmd, "Failed to list host-only interfaces")
+
+        if 'vboxnet0' not in output:
+            create_cmd = [self.vboxmanage, 'hostonlyif', 'create']
+            success, output = self._run_command(create_cmd, "Failed to create host-only interface")
+            if not success:
+                return False, output
+
+        command = [
+            self.vboxmanage, 'modifyvm', self.config.name,
+            '--nic2', 'hostonly',
+            '--hostonlyadapter2', 'vboxnet0'
+        ]
+        return self._run_command(command, "Failed to configure host-only adapter")
+
     def _add_storage_controllers(self) -> Tuple[bool, str]:
         """Add IDE and SATA controllers."""
         # Add IDE Controller
@@ -197,11 +220,8 @@ class VirtualMachineService:
             return False, message
 
         # Add SATA Controller
-        return self._run_command(
-            ['vboxmanage', 'storagectl', self.config.name,
-             '--name', 'SATA Controller', '--add', 'sata'],
-            "Failed to add SATA controller"
-        )
+        return True, message
+
 
     def _create_and_attach_hard_disk(self) -> Tuple[bool, str]:
         """Create and attach the virtual hard disk."""
@@ -262,6 +282,13 @@ class VirtualMachineService:
         vm_state = vm_details.get('VMState')
         if vm_state == "running":
             return False, "VM is already running"
+
+        if vm_state == "paused":
+            resume_cmd = ['vboxmanage', 'controlvm', uuid, 'resume']
+            success, output = self._run_command(resume_cmd, "Failed to resume VM")
+            if success:
+                return True, "VM resumed successfully"
+
 
         # Start the VM
         success, output = self._run_command(
@@ -385,6 +412,16 @@ class VirtualMachineService:
             if not success:
                 return False, f"Failed to find VM with UUID {uuid}"
 
+            # Check if VM is running
+            vm_state = None
+            for line in output.splitlines():
+                if line.startswith('VMState='):
+                    vm_state = line.split('=')[1].strip('"')
+                    break
+
+            if vm_state == "running":
+                return False, "Cannot modify a running VM. Please stop the VM first."
+
             # Modify VM settings
             memory = vm.get('memory', 2048)
             cpus = vm.get('cpus', 1)
@@ -402,6 +439,11 @@ class VirtualMachineService:
                 return True, "VM modified successfully"
             else:
                 logger.error(f"Failed to modify VM {uuid}: {message}")
+                create_log(
+                    action="Modify vm",
+                    description=f"Failed to modify VM {uuid}: {message}",
+                    status="error"
+                )
                 return False, message
         except Exception as e:
             return False, str(e)
@@ -457,4 +499,9 @@ class VirtualMachineService:
                 'mac': mac_address if mac_address else 'Not available'
             }
         except Exception as e:
+            create_log(
+                action="Get vm network info",
+                description=f"Failed to get vm network info: {str(e)}",
+                status="error"
+            )
             return False, {'error': str(e)}

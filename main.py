@@ -7,9 +7,13 @@ from pathlib import Path
 from humanize import naturalsize  # for human-readable file sizes
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
+from app.models.vms import VM
 
 # ISO_PATH = "path/to/iso/ubuntu-24.04-desktop-amd64.iso"
 from app import create_app  # Import the create_app function
+from app.vms import VirtualMachineService
+from app.extensions import db
+
 # from app.vms import VirtualBoxConfig
 
 ISO_PATHS = {
@@ -22,6 +26,26 @@ ISO_PATHS = {
 }
 
 
+def sync_vms_to_db():
+    vm_service = VirtualMachineService()
+    success, vms = vm_service.get_all_vms()
+
+    if success:
+        for vm in vms:
+            print(vm)
+            new_vm = VM(
+                name=vm['name'],
+                uuid=vm['uuid'],
+                memory=vm.get('memory', 2048),
+                cpus=vm.get('cpus', 2),
+                os_type=vm.get('ostype'),
+                status=vm.get('VMState'),
+                user_id=1
+            )
+            db.session.add(new_vm)
+
+        db.session.commit()
+    print("VMs synced to database")
 def get_os_specific_path(path):
     system = platform.system().lower()
     if system == 'windows':
@@ -168,10 +192,14 @@ app = create_app()  # Create the app instance
 if __name__ == '__main__':
     # Install humanize if not present
     try:
+        # with app.app_context():
+            # db.create_all()
+            # sync_vms_to_db()
         import humanize
     except ImportError:
         print("Installing required package: humanize")
         os.system("pip install humanize")
         import humanize
     check_iso_files()
+
     app.run(debug=True)

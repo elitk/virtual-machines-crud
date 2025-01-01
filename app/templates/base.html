@@ -8,7 +8,7 @@
 </head>
 <body>
     <nav class="bg-gray-800">
-        <div class="container mx-auto flex justify-between items-center flex-row-reverse">
+        <div class="w-full flex justify-between items-center flex-row-reverse">
 <!--            <h1 class="text-white text-xl font-bold">My Flask App</h1>-->
         <img alt="ono-logo" class="bg-white h-full" src="{{ url_for('static', filename='images/logo-ono.png') }}">
             <!-- Desktop Navigation -->
@@ -22,13 +22,6 @@
                    </a>
                </li>
                {% if current_user.is_authenticated %}
-                   <li>
-                       <a href="{{ url_for('vms.create_vm') }}"
-                          class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
-                                 {% if request.endpoint == 'vms.create_vm' %}bg-gray-900 text-white{% endif %}">
-                           Create VM
-                       </a>
-                   </li>
                    <li>
                        <a href="{{ url_for('vms.list_vms') }}"
                           class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium
@@ -93,10 +86,7 @@
                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
                     Home
                 </a>
-                <a href="{{ url_for('vms.create_vm') }}"
-                   class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
-                    Create VM
-                </a>
+
                 <a href="{{ url_for('vms.list_vms') }}"
                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
                     List VM
@@ -114,7 +104,7 @@
         </div>
     </nav>
 
-    <main class="container mx-auto mt-6 px-4">
+    <main>
         {% block content %}{% endblock %}
         {% if is_loading  %}
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

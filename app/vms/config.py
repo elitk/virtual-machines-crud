@@ -29,6 +29,7 @@ class VirtualBoxConfig:
         if system == 'darwin':  # macOS
             # Common Mac paths
             paths = [
+                '/Applications/VirtualBox.app/Contents/MacOS/VBoxManage',
                 '/usr/local/bin/vboxmanage',
                 '/opt/homebrew/bin/vboxmanage',
                 'vboxmanage'  # if in PATH

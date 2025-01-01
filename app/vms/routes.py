@@ -38,6 +38,11 @@ def update_vm(uuid):
         flash('VM configuration updated successfully', 'success')
         return jsonify({'success': success, 'message': message})
     except Exception as e:
+        create_log(
+            action="Updating user",
+            description=f'Error updating VM: {str(e)}',
+            status="error"
+        )
         flash(f'Error updating VM: {str(e)}', 'error')
         return jsonify({'success': False, 'message': str(e)})
 
@@ -90,6 +95,7 @@ def start_vm(uuid):
     return jsonify({'success': success, 'message': message})
 
 
+
 @vm_bp.route('/<uuid>/stop', methods=['POST'])
 @login_required
 def stop_vm(uuid):
@@ -97,6 +103,12 @@ def stop_vm(uuid):
     success, message = vm_service.stop_vm(uuid)
     return jsonify({'success': success, 'message': message})
 
+@vm_bp.route('/<uuid>/pause', methods=['POST'])
+@login_required
+def pause_vm(uuid):
+    vm_service = VirtualMachineService()
+    success, message = vm_service.pause_vm(uuid)
+    return jsonify({'success': success, 'message': message})
 
 @vm_bp.route('/list_vms', methods=['GET'])
 @login_required
@@ -183,6 +195,11 @@ def list_running_vms():
                                    running_vms=[])
 
     except Exception as e:
+        create_log(
+            action="Get running vms",
+            description=f"Failed to get running vms: {str(e)}",
+            status="error"
+        )
         return render_template('vms/list_running_vms.html',
                                error=str(e),
                                running_vms=[])
@@ -196,12 +213,6 @@ def take_screenshot(uuid):
         success, result = vm_service.take_screenshot(uuid)
 
         if success:
-            # Return the screenshot path
-            create_log(
-                action="Create screenshot",
-                description="Screenshot created successfully",
-                status="success"
-            )
             return jsonify({
                 'success': True,
                 'screenshot_url': url_for('static', filename=f'screenshots/{os.path.basename(result)}')
