@@ -142,40 +142,6 @@ def list_vms():
                                stopped_vms=[],
                                vms=[])
 
-# @vm_bp.route('/list_vms', methods=['GET'])
-# @login_required
-# def list_vms():
-#     try:
-#         # Call host service
-#         print('HOST_SERVICE_URL', HOST_SERVICE_URL)
-#         print('url', f'{HOST_SERVICE_URL}/api/vms/list')
-#         response = requests.get(f'{HOST_SERVICE_URL}/api/vms/list')
-#         data = response.json()
-#
-#         if data['success']:
-#             running_vms = []
-#             stopped_vms = []
-#             for vm in data['vms']:
-#                 status = vm.get('VMState')
-#                 vm['status'] = status
-#                 if status == 'running':
-#                     running_vms.append(vm)
-#                 elif status == 'poweroff':
-#                     stopped_vms.append(vm)
-#
-#             return render_template('pages/list_vms.html',
-#                                    vms=data['vms'],
-#                                    stopped_vms=stopped_vms,
-#                                    running_vms=running_vms)
-#         else:
-#             return jsonify({'success': False, 'message': data['message']})
-#
-#     except requests.RequestException as e:
-#         return jsonify({
-#             'success': False,
-#             'message': f"Failed to communicate with host service: {str(e)}"
-#         })
-
 
 @vm_bp.route('/list_running_vms', methods=['GET'])
 @login_required

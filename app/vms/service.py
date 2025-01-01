@@ -6,6 +6,8 @@ import logging
 import re
 from .config import VMConfig, VirtualBoxConfig
 from pathlib import Path
+from app.extensions import db
+from app.models.vms import VM
 
 from ..utils.logger import create_log
 
@@ -151,6 +153,18 @@ class VirtualMachineService:
                 logger.error(f"Failed at step '{step_name}': {message}")
                 return False, f"Failed at {step_name}: {message}"
             logger.info(f"Successfully completed: {step_name}")
+
+            # Save to database
+        vm =VM(
+            name=self.config.name,
+            uuid=self.config.uuid,
+            memory=self.config.memory,
+            cpus=self.config.cpus,
+            os_type=self.config.os_type,
+            status='running'
+        )
+        db.session.add(vm)
+        db.session.commit()
 
         return True, "VM created and started successfully"
 
