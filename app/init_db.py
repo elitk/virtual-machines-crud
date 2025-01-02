@@ -12,7 +12,7 @@ def create_database():
         conn = psycopg2.connect(
             dbname='postgres',
             user='postgres',
-            password='Ee27951352!',
+            password='password',
             host='localhost'
         )
 
